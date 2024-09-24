@@ -40,8 +40,9 @@ g = Graph()
 ns = "http://vivo.mydomain.edu/individual/"
 first_names = ["a", "b", "c"]
 last_names = ["x", "y", "z"]
-lorem = ['abcdefghijklmnopqrstuvwxyz']
+lorem_content = ['abcdefghijklmnopqrstuvwxyz']
 lang = "en"
+content_langs = []
 concept_uris = []
 journal_uris = []
 author_uris = set()
@@ -108,7 +109,10 @@ def add_person(self, o_uri):
     p_uri = make_uri('person')
     self.add((p_uri, URIRef(RDF.type), URIRef(vivo.FacultyMember)))
     self.add((p_uri, URIRef(RDFS.label), Literal(full_name, lang=lang)))
-    self.add((p_uri, URIRef(vivo.overview), Literal(make_title() + make_title() + make_title(), lang=lang)))
+
+    for overview, language_tag in make_description():
+        self.add((p_uri, URIRef(vivo.overview), Literal(overview, lang=language_tag)))
+    
     self.add((p_uri, URIRef(vivo.researcherId), Literal(str(random.randint(1000000, 9999999)), datatype=XSD.string)))
     self.add((p_uri, URIRef(vivo.scopusId), Literal(str(random.randint(1000000, 9999999)), datatype=XSD.string)))
     self.add((p_uri, URIRef(vivo.eraCommonsId), Literal(str(random.randint(1000000, 9999999)), datatype=XSD.string)))
@@ -184,12 +188,32 @@ def add_person(self, o_uri):
 
 
 def make_title():
-    global lorem
-    start = random.randint(0, len(lorem) / 2)
+    global lorem_content
+
+    multilingual_titles = []
     length = random.randint(10, 100)
-    title = lorem[start:start + length].strip(" ,.")
-    title = title[1].upper() + title[2:]
-    return title
+    for index, lorem in enumerate(lorem_content):
+        start = random.randint(0, len(lorem) / 2)
+        
+        title = lorem[start:start + length].strip(" ,.")
+        title = title[1].upper() + title[2:]
+        multilingual_titles.append((title, content_langs[index]))
+
+    return multilingual_titles
+
+
+def make_description():
+    global lorem_content
+
+    multilingual_descriptions = []
+    length = random.randint(100, 1000)
+    for index, lorem in enumerate(lorem_content):
+        start = random.randint(0, len(lorem) / 2)
+        description = lorem[start:start + length].strip(" ,.")
+        description = description[1].upper() + description[2:]
+        multilingual_descriptions.append((description, content_langs[index]))
+
+    return multilingual_descriptions
 
 
 def make_work_type():
@@ -209,16 +233,20 @@ def add_work(self, p_uri):
     global author_uris
 
     author_uris.add(p_uri)
-    label = make_title()
     w_uri = make_uri('work')
     self.add((w_uri, URIRef(RDF.type), make_work_type()))
-    self.add((w_uri, URIRef(RDFS.label), Literal(label, lang=lang)))
+
+    for title, language_tag in make_title():
+        self.add((w_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+    
     self.add((w_uri, URIRef(bibo.doi),
               Literal(
                   "https://doi.org/10." + str(random.randint(1000, 9999)) + '/' + str(random.randint(100000, 999999)),
                   datatype=XSD.anyURI)))
-    self.add((w_uri, URIRef(bibo.abstract),
-              Literal(' '.join([make_title() for x in range(5)]), lang=lang)))
+    
+    for description, language_tag in make_description():
+        self.add((w_uri, URIRef(bibo.abstract), Literal(description, lang=language_tag)))
+    
     self.add((w_uri, URIRef(vivo.hasPublicationVenue), journal_uris[random.randint(0, len(journal_uris) - 1)]))
     self.add((w_uri, URIRef(vivo.dateTimeValue), self.add_date(random.randint(1979, 2018))))
     self.add((w_uri, URIRef(bibo.volume), Literal(str(random.randint(1, 400)), datatype=XSD.string)))
@@ -340,6 +368,69 @@ def add_date(self, year):
     return d_uri
 
 
+def add_project(self, participants, works):
+    project_uri = make_uri('Project')
+
+    for title, language_tag in make_title():
+        self.add((project_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+
+    self.add((project_uri, URIRef(vivo.dateTimeInterval), self.add_date_interval(random.randint(1979, 2018), None)))
+   
+    for description, language_tag in make_description():
+        self.add((project_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+
+    for participant in participants:
+        self.add((project_uri, URIRef(obo.BFO_0000055), URIRef(participant)))
+    
+    for work in works:
+        self.add((project_uri, URIRef(obo.RO_0002234), URIRef(work)))  
+
+    return project_uri
+
+
+def add_grant(self, administers, fundraisers, supportees):
+    grant_uri = make_uri('Grant')
+
+    for title, language_tag in make_title():
+        self.add((grant_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+
+    self.add((grant_uri, URIRef(vivo.dateTimeInterval), self.add_date_interval(random.randint(1979, 2018), None)))
+   
+    for description, language_tag in make_description():
+        self.add((grant_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+
+    for abstract, language_tag in make_description():
+        self.add((grant_uri, URIRef(vivo.abstract), Literal(abstract, lang=language_tag)))
+
+    for administer in administers:
+        self.add((grant_uri, URIRef(vivo.relates), URIRef(administer)))  
+
+    for fundraiser in fundraisers:
+        self.add((grant_uri, URIRef(vivo.fundingVehicleFor), URIRef(fundraiser)))  
+    
+    for supportee in supportees:
+        self.add((grant_uri, URIRef(vivo.supportedInformationResource), URIRef(supportee)))  
+
+    return grant_uri
+
+
+def add_equipment(self, manufacturer, equipees):
+    project_uri = make_uri('Equipment')
+
+    for title, language_tag in make_title():
+        self.add((project_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+   
+    for description, language_tag in make_description():
+        self.add((project_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+
+    self.add((project_uri, URIRef(obo.OBI_0000304), URIRef(manufacturer)))
+    
+    for equipee in equipees:
+        self.add((project_uri, URIRef(vivo.equipmentFor), URIRef(equipee)))  
+
+    return project_uri
+
+
 Graph.add_university = add_university
 Graph.add_college = add_college
 Graph.add_department = add_department
@@ -348,6 +439,9 @@ Graph.add_work = add_work
 Graph.add_date = add_date
 Graph.add_date_interval = add_date_interval
 Graph.add_coauthors = add_coauthors
+Graph.add_project = add_project
+Graph.add_grant = add_grant
+Graph.add_equipment = add_equipment
 
 
 def main():
@@ -356,8 +450,8 @@ def main():
     global department_names
     global first_names
     global last_names
-    global lorem
     global lang
+    global content_langs
     global concept_uris
     global journal_uris
     global titles
@@ -378,8 +472,13 @@ def main():
     college_names = [x.strip() for x in college_names]
     department_names = config.get("SDG", "department_names").replace("  ", " ").split(",")
     department_names = [x.strip() for x in department_names]
-    lorem = config.get("SDG", "lorem")
+
     lang = config.get("SDG", "lang")
+    content_langs = config.get("SDG", "content_langs").strip().replace(" ", "").split(",")
+    
+    lorem_content.clear()
+    for language_tag in content_langs:
+        lorem_content.append(config.get("SDG", "lorem_" + language_tag))
 
     work_type_frequency = config.get("SDG", "work_type_frequency").replace("  ", " ").split(",")
     work_type_frequency_sum = sum([float(x) for x in work_type_frequency])
@@ -430,8 +529,12 @@ def main():
 
     u_uri = g.add_university(config.get("SDG", "university_name"))
 
+    person_uris = []
+    college_uris = []
+
     for i in range(random.randint(min_colleges_per_university, max_colleges_per_university + 1)):
         c_uri = g.add_college(college_names[random.randint(0, len(college_names) - 1)], u_uri)
+        college_uris.append(c_uri)
         n_colleges += 1
 
         for j in range(random.randint(min_departments_per_college, max_departments_per_college + 1)):
@@ -440,6 +543,7 @@ def main():
 
             for k in range(random.randint(min_faculty_per_department, max_faculty_per_department + 1)):
                 p_uri = g.add_person(d_uri)
+                person_uris.append(p_uri)
                 n_people += 1
                 print("Adding person", n_people)
 
@@ -450,7 +554,7 @@ def main():
                 if not isinstance(a, int):
                     a = int(a[0])
 
-                for w in range(random.randint(min_works_per_faculty, a)):
+                for w in range(random.randint(min_works_per_faculty, min_works_per_faculty + a)):
                     w_uri = g.add_work(p_uri)
                     work_uris.append(w_uri)
                     n_works += 1
@@ -458,6 +562,46 @@ def main():
     print("People", n_people, "Works", n_works)
 
     # once all the authors and works are created, add co-authors and co-author stubs
+
+    n_projects = int(config.get("SDG", "n_projects"))
+    min_project_participants = int(config.get("SDG", "min_project_participants"))
+    max_project_participants = int(config.get("SDG", "max_project_participants"))
+    min_produced_work = int(config.get("SDG", "min_produced_work"))
+    max_produced_work = int(config.get("SDG", "max_produced_work"))
+
+    project_uris = []
+    for proj_index in range(n_projects):
+        n_participants = random.randint(min_project_participants, max_project_participants)
+        n_produced_work = random.randint(min_produced_work, max_produced_work)
+        proj_uri = g.add_project(random.choice(person_uris, n_participants), random.choice(work_uris, n_produced_work))
+        project_uris.append(proj_uri)
+        print(f"Added project {proj_index + 1}: {proj_uri}")
+
+
+    n_grants = int(config.get("SDG", "n_grants"))
+    min_administers = int(config.get("SDG", "min_administers"))
+    max_administers = int(config.get("SDG", "max_administers"))
+    min_fundraisers = int(config.get("SDG", "min_produced_work"))
+    max_fundraisers = int(config.get("SDG", "max_produced_work"))
+    min_grant_participants = int(config.get("SDG", "min_grant_participants"))
+    max_grant_participants = int(config.get("SDG", "max_grant_participants"))
+
+    for grant_index in range(n_grants):
+        n_administers = random.randint(min_administers, max_administers)
+        n_fundraisers = random.randint(min_fundraisers, max_fundraisers)
+        n_supportees = random.randint(min_grant_participants, max_grant_participants)
+        grant_uri = g.add_grant(random.choice(college_uris, n_administers), random.choice(project_uris, n_fundraisers), random.choice(work_uris, n_supportees))
+        print(f"Added grant {grant_index + 1}: {grant_uri}")
+
+
+    n_equipment = int(config.get("SDG", "n_equipment"))
+    min_supportees = int(config.get("SDG", "min_supportees"))
+    max_supportees = int(config.get("SDG", "max_supportees"))
+
+    for equipment_index in range(n_equipment):
+        n_equipees = random.randint(min_supportees, max_supportees)
+        equipment_uri = g.add_equipment(random.choice(college_uris, 1)[0], random.choice(college_uris, n_equipees))
+        print(f"Added equipment {equipment_index + 1}: {equipment_uri}")
 
     nw_uri = 0
     for w_uri in work_uris:
@@ -467,11 +611,10 @@ def main():
             print("Adding coauthors for work", nw_uri)
 
     f = open("sample-data.ttl", "w")
-    print(g.serialize(format="ttl").decode('utf-8'), file=f)
+    print(g.serialize(format="ttl"), file=f)
     stop = time.time()
     print(site_dns, "1 University;", n_colleges, "colleges;", n_departments, "departments;", n_people, "people;",
-          n_works,
-          "works;", len(g), "triples in language", lang, "{:.2f} seconds".format(stop - start))
+          n_works, "works;", n_projects, "projects;", n_grants, "grants;", n_equipment, "units of equipment;", len(g), "triples in language", lang, "{:.2f} seconds".format(stop - start))
     return
 
 

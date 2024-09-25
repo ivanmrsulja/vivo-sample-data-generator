@@ -191,10 +191,9 @@ def make_title():
     global lorem_content
 
     multilingual_titles = []
+    start = random.randint(0, len(lorem_content[0]) / 2)
     length = random.randint(10, 100)
     for index, lorem in enumerate(lorem_content):
-        start = random.randint(0, len(lorem) / 2)
-        
         title = lorem[start:start + length].strip(" ,.")
         title = title[1].upper() + title[2:]
         multilingual_titles.append((title, content_langs[index]))
@@ -207,8 +206,8 @@ def make_description():
 
     multilingual_descriptions = []
     length = random.randint(100, 1000)
+    start = random.randint(0, len(lorem_content[0]) / 2)
     for index, lorem in enumerate(lorem_content):
-        start = random.randint(0, len(lorem) / 2)
         description = lorem[start:start + length].strip(" ,.")
         description = description[1].upper() + description[2:]
         multilingual_descriptions.append((description, content_langs[index]))
@@ -370,6 +369,7 @@ def add_date(self, year):
 
 def add_project(self, participants, works):
     project_uri = make_uri('Project')
+    self.add((project_uri, URIRef(RDF.type), URIRef(vivo.Project)))
 
     for title, language_tag in make_title():
         self.add((project_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
@@ -390,6 +390,7 @@ def add_project(self, participants, works):
 
 def add_grant(self, administers, fundraisers, supportees):
     grant_uri = make_uri('Grant')
+    self.add((grant_uri, URIRef(RDF.type), URIRef(vivo.Grant)))
 
     for title, language_tag in make_title():
         self.add((grant_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
@@ -415,20 +416,21 @@ def add_grant(self, administers, fundraisers, supportees):
 
 
 def add_equipment(self, manufacturer, equipees):
-    project_uri = make_uri('Equipment')
+    equipment_uri = make_uri('Equipment')
+    self.add((equipment_uri, URIRef(RDF.type), URIRef(vivo.Project)))
 
     for title, language_tag in make_title():
-        self.add((project_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+        self.add((equipment_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
    
     for description, language_tag in make_description():
-        self.add((project_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+        self.add((equipment_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
 
-    self.add((project_uri, URIRef(obo.OBI_0000304), URIRef(manufacturer)))
+    self.add((equipment_uri, URIRef(obo.OBI_0000304), URIRef(manufacturer)))
     
     for equipee in equipees:
-        self.add((project_uri, URIRef(vivo.equipmentFor), URIRef(equipee)))  
+        self.add((equipment_uri, URIRef(vivo.equipmentFor), URIRef(equipee)))  
 
-    return project_uri
+    return equipment_uri
 
 
 Graph.add_university = add_university
@@ -561,7 +563,7 @@ def main():
 
     print("People", n_people, "Works", n_works)
 
-    # once all the authors and works are created, add co-authors and co-author stubs
+    # once all the authors and works are created, create projects, grants and equipment. After that, add co-authors and co-author stubs
 
     n_projects = int(config.get("SDG", "n_projects"))
     min_project_participants = int(config.get("SDG", "min_project_participants"))

@@ -11,12 +11,14 @@ LINES_PER_CHUNK=10000  # Process 10,000 lines at a time
 COUNTER=1
 CURRENT_SIZE=0
 OUTPUT_FILE="output_part_${COUNTER}.ttl"
-OFFSET=0
+OFFSET=8
 
 create_new_file() {
   OUTPUT_FILE="output_part_${COUNTER}.ttl"
   echo "Creating new file: $OUTPUT_FILE"
-  CURRENT_SIZE=0
+  head -n 8 "$INPUT_FILE" > "$OUTPUT_FILE"
+  echo "" >> "$OUTPUT_FILE"
+  CURRENT_SIZE=$(wc -c < "$OUTPUT_FILE")
   COUNTER=$((COUNTER + 1))
 }
 
@@ -41,4 +43,4 @@ while true; do
   OFFSET=$((OFFSET + LINES_PER_CHUNK))
 done
 
-echo "File split completed."
+echo "File split completed. Please check files for any sudden breaks in the triples."

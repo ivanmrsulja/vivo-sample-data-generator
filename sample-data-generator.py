@@ -433,6 +433,72 @@ def add_equipment(self, manufacturer, equipees):
     return equipment_uri
 
 
+def add_conference(self, events):
+    conference_uri = make_uri('Conference')
+    self.add((conference_uri, URIRef(RDF.type), URIRef(vivo.Conference)))
+
+    for title, language_tag in make_title():
+        self.add((conference_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+
+    self.add((conference_uri, URIRef(vivo.dateTimeInterval), self.add_date_interval(random.randint(1979, 2018), None)))
+   
+    for description, language_tag in make_description():
+        self.add((conference_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+    
+    for event in events:
+        self.add((conference_uri, URIRef(obo.BFO_0000051), URIRef(event)))  
+
+    return conference_uri
+
+
+def add_invited_talk(self, participants):
+    talk_uri = make_uri('InvitedTalk')
+    self.add((talk_uri, URIRef(RDF.type), URIRef(vivo.InvitedTalk)))
+
+    for title, language_tag in make_title():
+        self.add((talk_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+   
+    for description, language_tag in make_description():
+        self.add((talk_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+    
+    for participant in participants:
+        self.add((talk_uri, URIRef(obo.BFO_0000055), URIRef(participant)))
+
+    return talk_uri
+
+
+def add_presentation(self, participants):
+    presentation_uri = make_uri('Presentation')
+    self.add((presentation_uri, URIRef(RDF.type), URIRef(vivo.InvitedTalk)))
+
+    for title, language_tag in make_title():
+        self.add((presentation_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+   
+    for description, language_tag in make_description():
+        self.add((presentation_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+    
+    for participant in participants:
+        self.add((presentation_uri, URIRef(obo.BFO_0000055), URIRef(participant)))
+
+    return presentation_uri
+
+
+def add_course(self, participants):
+    course_uri = make_uri('Course')
+    self.add((course_uri, URIRef(RDF.type), URIRef(vivo.InvitedTalk)))
+
+    for title, language_tag in make_title():
+        self.add((course_uri, URIRef(RDFS.label), Literal(title, lang=language_tag)))
+   
+    for description, language_tag in make_description():
+        self.add((course_uri, URIRef(vivo.description), Literal(description, lang=language_tag)))
+    
+    for participant in participants:
+        self.add((course_uri, URIRef(obo.BFO_0000055), URIRef(participant)))
+
+    return course_uri
+
+
 Graph.add_university = add_university
 Graph.add_college = add_college
 Graph.add_department = add_department
@@ -444,6 +510,10 @@ Graph.add_coauthors = add_coauthors
 Graph.add_project = add_project
 Graph.add_grant = add_grant
 Graph.add_equipment = add_equipment
+Graph.add_conference = add_conference
+Graph.add_invited_talk = add_invited_talk
+Graph.add_presentation = add_presentation
+Graph.add_course = add_course
 
 
 def main():
@@ -604,6 +674,38 @@ def main():
         n_equipees = random.randint(min_supportees, max_supportees)
         equipment_uri = g.add_equipment(random.choice(college_uris, 1)[0], random.choice(college_uris, n_equipees))
         print(f"Added equipment {equipment_index + 1}: {equipment_uri}")
+
+    n_conferences = int(config.get("SDG", "n_conferences"))
+    n_invited_talks = int(config.get("SDG", "n_invited_talks"))
+    n_presentations = int(config.get("SDG", "n_presentations"))
+    min_event_participants = int(config.get("SDG", "min_event_participants"))
+    max_event_participants = int(config.get("SDG", "max_event_participants"))
+    for conference_index in range(n_conferences):
+        sub_events_uris = []
+
+        for invited_talk_index in range(n_invited_talks):
+            n_event_participants = random.randint(min_event_participants, max_event_participants)
+            invited_talk_uri = g.add_invited_talk(random.choice(person_uris, n_event_participants))
+            sub_events_uris.append(invited_talk_uri)
+            print(f"Added invited talk {invited_talk_index + 1}: {invited_talk_uri}")
+
+        for presentation_index in range(n_presentations):
+            n_event_participants = random.randint(min_event_participants, max_event_participants)
+            presentation_uri = g.add_presentation(random.choice(person_uris, n_event_participants))
+            sub_events_uris.append(presentation_uri)
+            print(f"Added presentation {presentation_index + 1}: {presentation_uri}")
+        
+        conference_uri = g.add_conference(sub_events_uris)
+        print(f"Added conference {conference_index + 1}: {conference_uri}")
+
+        for event_uri in sub_events_uris:
+            g.add((event_uri, URIRef(obo.BFO_0000050), URIRef(conference_uri)))
+
+    n_courses = int(config.get("SDG", "n_courses"))
+    for course_index in range(n_courses):
+        n_event_participants = random.randint(min_event_participants, max_event_participants)
+        course_uri = g.add_course(random.choice(person_uris, n_event_participants))
+        print(f"Added course {course_index + 1}: {course_uri}")
 
     nw_uri = 0
     for w_uri in work_uris:

@@ -714,12 +714,17 @@ def main():
         if nw_uri % 10 == 0:
             print("Adding coauthors for work", nw_uri)
 
-    f = open("sample-data.ttl", "w")
-    print(g.serialize(format="ttl"), file=f)
-    stop = time.time()
-    print(site_dns, "1 University;", n_colleges, "colleges;", n_departments, "departments;", n_people, "people;",
-          n_works, "works;", n_projects, "projects;", n_grants, "grants;", n_equipment, "units of equipment;", len(g), "triples in language", lang, "{:.2f} seconds".format(stop - start))
-    return
+    with open("sample-data.ttl", "w") as f:
+        triples_string = g.serialize(format="ttl")
+        
+        for language_tag in content_langs:
+            language_tag_vivo_locale = language_tag.replace("_", "-")
+            triples_string = triples_string.replace(language_tag, language_tag_vivo_locale)
+
+        print(triples_string, file=f)
+        stop = time.time()
+        print(site_dns, "1 University;", n_colleges, "colleges;", n_departments, "departments;", n_people, "people;",
+            n_works, "works;", n_projects, "projects;", n_grants, "grants;", n_equipment, "units of equipment;", len(g), "triples in language", lang, "{:.2f} seconds".format(stop - start))
 
 
 if __name__ == "__main__":

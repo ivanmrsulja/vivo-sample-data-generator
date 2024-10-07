@@ -14,7 +14,7 @@ OUTPUT_FILE="output_part_${COUNTER}.ttl"
 OFFSET=8
 
 create_new_file() {
-  OUTPUT_FILE="output_part_${COUNTER}.ttl"
+  OUTPUT_FILE="sample_data_${COUNTER}.ttl"
   echo "Creating new file: $OUTPUT_FILE"
   head -n 8 "$INPUT_FILE" > "$OUTPUT_FILE"
   echo "" >> "$OUTPUT_FILE"

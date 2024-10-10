@@ -31,10 +31,14 @@ took to produce it.  For example:
 1. Sizing.  Using parameters in `sdg.properties` you can control the
 minimum and maximum:
     1. Number of colleges in the university
-    1. Number of departments within each college
-    1. Number of faculty members in each department
-    1. Numbers of works of each faculty member
-1. Text and Language.
+    2. Number of departments within each college
+    3. Number of faculty members in each department
+    4. Numbers of works of each faculty member
+    5. Number of projects, ranges for project participants and produced work
+    6. Number of grants, ranges for administers, fundraisers and grant participants
+    7. Number of equipment units, range for supportees
+    8. Number of conferences, invited talks and presentations per conference. Number of courses, as well as the range for number of participants per each event (where applicable)
+2. Text and Language.
     * All text is taken from the properties file.  A language can be
     specified as a property.  By replacing the text in the properties
     file with that of another language, and specifying the language tag,
@@ -42,29 +46,29 @@ minimum and maximum:
     * By adding or replacing any of the text properties, sample data
     can be generated that is more reflective of local conditions.
     * See `sdg.properties` for all the text that can be replaced.
-1. Realistic distribution of works by faculty members.  The number of
+3. Realistic distribution of works by faculty members.  The number of
 works associated with each faculty member is generated using realistic
 probability distributions.
 Some faculty will have no publications while others will have many.
-1. Probability distribution of works.  Via the properties, a provided
+4. Probability distribution of works.  Via the properties, a provided
 probability distribution of works favoring academic articles can be
 replaced with a distribution of your choice.
-1. Organization.  The sample university has colleges, and departments
+5. Organization.  The sample university has colleges, and departments
 within colleges. Each has a name and organizational structure.
-1. Faculty members.  Faculty members have contact information, works,
+6. Faculty members.  Faculty members have contact information, works,
 a position in a department, research areas, and multiple identifiers.
-1. Works.  25 types of works are created.  Works have full citation
+7. Works.  25 types of works are created.  Works have full citation
 information including abstracts, subject areas, identifiers,
 a link to full text, and a realistically random number of co-authors,
 including co-authors in and out of the sample
 university.
-1. Concepts.  Concepts are created from a list provided in the
+8. Concepts.  Concepts are created from a list provided in the
 properties, and assigned to faculty as
 research areas and as subject areas for works.
-1. Journals.  A collection of journals are created from a list
+9. Journals.  A collection of journals are created from a list
 provided in the properties.  Each work has a publication venue of one
 of the journals.
-1. Demonstrations.  Using SDG, you can generate data to demonstrate
+10. Demonstrations.  Using SDG, you can generate data to demonstrate
 and test:
     * Profile pages for people, organizations, journals, works, concepts
     * Contact information and vcards

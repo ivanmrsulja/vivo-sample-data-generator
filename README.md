@@ -43,6 +43,7 @@ minimum and maximum:
     specified as a property.  By replacing the text in the properties
     file with that of another language, and specifying the language tag,
     the resulting data is fully internationalized.
+    * Labels are supported in multiple different languages at the same time. By supplying text in label text field and specifying a language tag, labels are automatically generate for that language. Keep in mind that if you specify actual translations for multiple languages, your data will look more realistic.
     * By adding or replacing any of the text properties, sample data
     can be generated that is more reflective of local conditions.
     * See `sdg.properties` for all the text that can be replaced.
